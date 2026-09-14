@@ -1,0 +1,92 @@
+{
+  "version": "3.6.6",
+  "versionCode": 366,
+  "date": "2026-09-14",
+  "build": {
+    "release": "passed",
+    "debug": "passed",
+    "lintVitalRelease": "passed",
+    "cleanIsolatedDirectory": true,
+    "incrementalCompilation": false,
+    "jdk": 21,
+    "gradle": "8.13",
+    "compileSdk": 36,
+    "buildTools": "36.0.0"
+  },
+  "automatedTests": {
+    "tests": 320,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": 57
+  },
+  "testCoverage": [
+    "English WebSocket reasoning whitespace and newlines",
+    "English and automatic STT HTTP configuration saves",
+    "Phone locale and Chinese script normalization",
+    "Copy only the answer body; read and stop controls across 3 skins and 2 languages",
+    "Read-aloud cancellation, switching and stale synthesis responses"
+  ],
+  "apks": [
+    {
+      "file": "Hermes-Android-3.6.6-release.apk",
+      "variant": "release",
+      "versionName": "3.6.6",
+      "versionCode": 366,
+      "applicationId": "com.qingyu.hermescompanion.preview",
+      "debuggable": false,
+      "certificateSha256": "741c1844bb9267547e06af30d56c0da5bfcbf01491d3670496d88837a2860ad6",
+      "bytes": 64765273,
+      "sha256": "655e4be6bb4e50394cffef287ed8e12b7e99cb435958981c165ef3e11db3ffdb",
+      "abis": [
+        "arm64-v8a",
+        "armeabi-v7a",
+        "x86",
+        "x86_64"
+      ],
+      "signature": "passed",
+      "zipCrc": "passed",
+      "zipAlignment16KiB": "passed",
+      "dexChecksums": "passed",
+      "dexFiles": [
+        "classes.dex"
+      ]
+    },
+    {
+      "file": "Hermes-Android-3.6.6-debug.apk",
+      "variant": "debug",
+      "versionName": "3.6.6-preview",
+      "versionCode": 366,
+      "applicationId": "com.qingyu.hermescompanion.preview",
+      "debuggable": true,
+      "certificateSha256": "741c1844bb9267547e06af30d56c0da5bfcbf01491d3670496d88837a2860ad6",
+      "bytes": 69871428,
+      "sha256": "cebbfb8786861796508bf93c0288470a3c455e22e560448bd321a7e4a5017e40",
+      "abis": [
+        "arm64-v8a",
+        "armeabi-v7a",
+        "x86",
+        "x86_64"
+      ],
+      "signature": "passed",
+      "zipCrc": "passed",
+      "zipAlignment16KiB": "passed",
+      "dexChecksums": "passed",
+      "dexFiles": [
+        "classes.dex"
+      ]
+    }
+  ],
+  "upgrade": {
+    "packageMatches365": true,
+    "certificateMatches365": true,
+    "versionCodeIncreasedFrom": 365,
+    "metadataCompatibleWith365": true,
+    "physicalDeviceUpgradeTested": false
+  },
+  "notVerified": [
+    "Physical device microphone and speaker",
+    "Live English STT using the user gateway and recognition model",
+    "Physical device in-place upgrade"
+  ]
+}

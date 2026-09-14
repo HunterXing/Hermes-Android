@@ -95,6 +95,29 @@
       },
       "articles": [
         {
+          "id": "reply-actions-366",
+          "title": {
+            "zh": "复制或朗读 AI 回答",
+            "en": "Copy or read an AI answer aloud"
+          },
+          "steps": {
+            "zh": [
+              "等待 AI 回答完成，点击正文下方的“复制”或“朗读”。",
+              "复制保留完整正文与原有换行，不包含单独的思考过程。",
+              "朗读时点击“停止朗读”可停止；点另一条回答会切换朗读内容。返回列表、切换对话或开始录音时也会停止。"
+            ],
+            "en": [
+              "Wait for the answer to finish, then tap Copy or Read aloud below it.",
+              "Copy preserves the answer and line breaks, excluding the separate reasoning section.",
+              "Tap Stop reading to stop. Choosing another answer switches playback; leaving the chat, changing conversations or starting voice input also stops it."
+            ]
+          },
+          "tip": {
+            "zh": "手动朗读无需麦克风权限。自动引擎优先使用手机发音人，失败后尝试 Hermes；所需语音包或服务器 TTS 需可用。",
+            "en": "Manual read-aloud does not need microphone permission. Automatic mode tries a matching phone voice, then Hermes. A supported phone voice or working server TTS is required."
+          }
+        },
+        {
           "id": "start-chat",
           "title": {
             "zh": "开始或继续一段对话",
@@ -199,6 +222,31 @@
         "en": "Dictation, continuous voice and recognition problems"
       },
       "articles": [
+        {
+          "id": "recognition-language-366",
+          "title": {
+            "zh": "使用英语或其他语言识别",
+            "en": "Recognize English or another language"
+          },
+          "steps": {
+            "zh": [
+              "打开“我的 → 设置 → 语音”。在页面前部找到“Hermes 识别语言”与“手机识别语言”。",
+              "说英语时，Hermes 选择 English 或自动检测；手机选择 English (US)、English (UK) 或跟随手机语言。",
+              "Hermes 语言在弹窗确认后保存。看到保存成功提示后再录音测试；失败时保留原设置。",
+              "“中文文字样式”仅用于简繁转换，不是语音语言选择，也不会把英文翻译成中文。"
+            ],
+            "en": [
+              "Open Me → Settings → Voice. Find Hermes recognition language and Phone recognition language near the top.",
+              "For English speech, select English or Detect automatically for Hermes. Select English (US), English (UK), or Follow phone language for the phone.",
+              "Confirm the Hermes language to save it. Wait for the saved notice before testing; a failed save keeps the previous setting.",
+              "Chinese text style only converts simplified/traditional characters. It does not choose a spoken language or translate English into Chinese."
+            ]
+          },
+          "tip": {
+            "zh": "可识别语言取决于服务器模型或手机识别服务；已有语言选择会保留，不会因界面切换而自动覆盖。",
+            "en": "Supported languages depend on the server model or phone recognition service. Existing language choices are preserved when the interface language changes."
+          }
+        },
         {
           "id": "voice-input",
           "title": {

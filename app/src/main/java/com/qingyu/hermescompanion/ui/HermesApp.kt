@@ -259,6 +259,8 @@ fun HermesApp(viewModel: HermesViewModel, state: AppUiState) {
                 onLoadOlderMessages = viewModel::loadOlderMessages,
                 onScrollPositionChange = viewModel::saveChatScrollPosition,
                 onSnippetsChange = viewModel::updatePromptSnippets,
+                onReadAloud = viewModel::toggleReadAloud,
+                onStopReadAloud = viewModel::stopReadAloud,
             )
 
             AppRoute.WORKSPACE -> WorkspaceScreen(

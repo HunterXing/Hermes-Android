@@ -1011,20 +1011,20 @@
     <string name="ui_1016" formatted="false">"Show voice input and continuous conversation controls"</string>
     <string name="ui_1017" formatted="false">"Voice engine"</string>
     <string name="ui_1018" formatted="false">"Listening environment"</string>
-    <string name="ui_1019" formatted="false">"Chinese transcription script"</string>
+    <string name="ui_1019" formatted="false">Chinese text style</string>
     <string name="ui_1020" formatted="false">"Conversation and read-aloud"</string>
     <string name="ui_1021" formatted="false">"Read replies aloud"</string>
-    <string name="ui_1022" formatted="false">"Read the full reply; prefer a Chinese voice for Chinese text"</string>
+    <string name="ui_1022" formatted="false">Read the full reply; phone read-aloud matches Chinese and English text</string>
     <string name="ui_1023" formatted="false">"Continuous conversation"</string>
     <string name="ui_1024" formatted="false">"Listen again after read-aloud ends; tap to interrupt at any time"</string>
     <string name="ui_1025" formatted="false">"Quick voice replies"</string>
     <string name="ui_1026" formatted="false">"Faster voice replies, without changing text conversation settings"</string>
     <string name="ui_1027" formatted="false">"On-device voice"</string>
     <string name="ui_1028" formatted="false">"Use phone capabilities when the server is unavailable"</string>
-    <string name="ui_1029" formatted="false">"Fallback language"</string>
+    <string name="ui_1029" formatted="false">Phone recognition language</string>
     <string name="ui_1030" formatted="false">"Phone read-aloud settings"</string>
-    <string name="ui_1031" formatted="false">"Install voice data or choose the phone\'s speech engine"</string>
-    <string name="ui_1032" formatted="false">"Search for Text-to-speech in your phone settings to install voice data"</string>
+    <string name="ui_1031" formatted="false">Install a voice for your language or choose the phone speech engine</string>
+    <string name="ui_1032" formatted="false">Open Text-to-speech in phone settings and install the required voice.</string>
     <string name="ui_1033" formatted="false">"Open Text-to-speech in your phone settings"</string>
     <string name="ui_1034" formatted="false">"Test phone recognition"</string>
     <string name="ui_1035" formatted="false">"Tests the Android system service only"</string>
@@ -1035,7 +1035,7 @@
     <string name="ui_1040" formatted="false">"Provider"</string>
     <string name="ui_1041" formatted="false">"STT model"</string>
     <string name="ui_1042" formatted="false">"Server default"</string>
-    <string name="ui_1043" formatted="false">"Agent recognition language"</string>
+    <string name="ui_1043" formatted="false">Hermes recognition language</string>
     <string name="ui_1044" formatted="false">"Text-to-speech service"</string>
     <string name="ui_1045" formatted="false">"Choose a synthesis model and voice"</string>
     <string name="ui_1046" formatted="false">"TTS model"</string>
@@ -1430,4 +1430,15 @@
     <string name="gateway_password_label">"Password"</string>
     <string name="gateway_account_hint">"Use the sign-in account configured on your computer, which is separate from the assistant name. Your password is not stored on this phone."</string>
     <string name="gateway_diagnostics">"Diagnostics and Agent version"</string>
+    <string name="reply_copy">Copy</string>
+    <string name="reply_copied">Copied</string>
+    <string name="reply_read_aloud">Read aloud</string>
+    <string name="reply_stop_reading">Stop reading</string>
+    <string name="reply_preparing_audio">Preparing audio</string>
+    <string name="reply_no_text">This reply has no text to read aloud.</string>
+    <string name="reply_read_failed">Read-aloud failed. Check voice settings and try again.</string>
+    <string name="reply_no_connection">Connect to Hermes or use phone read-aloud.</string>
+    <string name="voice_follow_phone">Follow phone language</string>
+    <string name="voice_language_help">For English speech, choose English or Auto-detect for Hermes, and English for the phone. Confirming a Hermes language saves it. Available languages depend on your recognition service.</string>
+    <string name="voice_script_help">Only converts Chinese characters between simplified and traditional. It does not select a spoken language or translate English.</string>
 </resources>

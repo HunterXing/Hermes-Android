@@ -2,6 +2,14 @@
 
 All releases documented by the available release notes, newest first. Unknown early dates and undocumented version numbers are not invented. Historical entries describe behavior at that time; see the latest entry for current behavior.
 
+## 3.6.6 · 2026-09-14
+
+- Fix joined English words in reasoning by preserving spaces, line breaks and indentation in reasoning.delta and thinking.delta fragments.
+- Add Copy, Read aloud and Stop reading to completed AI answers. Copy includes only the answer body; read-aloud supports complete chunked playback, switching answers and stopping on exit.
+- Move Hermes and phone recognition language controls to the top of voice settings. Clearly distinguish spoken language from Chinese text style and save the Hermes language on confirmation.
+- Default phone recognition to the phone language while preserving saved choices. Expand language options and keep Cantonese recognition independent of Chinese script conversion.
+- Match phone read-aloud to Chinese or English answers, add English voice choices and add regression checks for language, copying and playback cancellation.
+
 ## 3.6.5 · 2026-09-10
 
 - Enlarge and raise the Warm home character, aligning its head with the greeting and feet with the main action. The layout follows measured text and button positions.

@@ -227,6 +227,62 @@ class ConcurrentSessionsTest {
         verify(client, never()).createSessionForProfile(any(), anyString())
     }
 
+    @Test fun stoppingReadAloudDiscardsLateAudio() {
+        val entered=java.util.concurrent.CountDownLatch(1)
+        val release=java.util.concurrent.CountDownLatch(1)
+        val playback=mock(com.qingyu.hermescompanion.data.VoicePlaybackController::class.java)
+        HermesViewModel::class.java.getDeclaredField("replyPlayback").apply { isAccessible=true }.set(vm,playback)
+        val message=ChatMessage("read-a", MessageRole.ASSISTANT,"An English answer.")
+        setState(vm.uiState.copy(messages=listOf(message), voicePreferences=VoicePreferences(engine="agent")))
+        `when`(client.synthesizeSpeech(anyString(),anyString())).thenAnswer {
+            entered.countDown()
+            check(release.await(5,java.util.concurrent.TimeUnit.SECONDS))
+            SpeechAudio(byteArrayOf(1,2,3),"audio/mpeg","test")
+        }
+        try {
+            vm.toggleReadAloud(message)
+            awaitState { entered.count==0L }
+            val job=HermesViewModel::class.java.getDeclaredField("readAloudJob").apply { isAccessible=true }.get(vm) as Job
+            assertEquals(message.id,vm.uiState.readAloudMessageId)
+            vm.onAppBackgrounded()
+            assertNull(vm.uiState.readAloudMessageId)
+            release.countDown()
+            awaitState { job.isCompleted }
+            assertTrue(mockingDetails(playback).invocations.none { it.method.name == "play" })
+        } finally { release.countDown() }
+    }
+
+    @Test fun switchingReadAloudKeepsNewAnswerActiveWhenOldRequestFinishes() {
+        val firstEntered=java.util.concurrent.CountDownLatch(1)
+        val secondEntered=java.util.concurrent.CountDownLatch(1)
+        val firstRelease=java.util.concurrent.CountDownLatch(1)
+        val secondRelease=java.util.concurrent.CountDownLatch(1)
+        val playback=mock(com.qingyu.hermescompanion.data.VoicePlaybackController::class.java)
+        HermesViewModel::class.java.getDeclaredField("replyPlayback").apply { isAccessible=true }.set(vm,playback)
+        val first=ChatMessage("read-a",MessageRole.ASSISTANT,"First answer.")
+        val second=ChatMessage("read-b",MessageRole.ASSISTANT,"Second answer.")
+        setState(vm.uiState.copy(messages=listOf(first,second), voicePreferences=VoicePreferences(engine="agent")))
+        `when`(client.synthesizeSpeech(anyString(),anyString())).thenAnswer {
+            val old=it.arguments[0]==first.content
+            (if(old)firstEntered else secondEntered).countDown()
+            check((if(old)firstRelease else secondRelease).await(5,java.util.concurrent.TimeUnit.SECONDS))
+            SpeechAudio(byteArrayOf(1,2,3),"audio/mpeg","test")
+        }
+        try {
+            vm.toggleReadAloud(first)
+            awaitState { firstEntered.count==0L }
+            val oldJob=HermesViewModel::class.java.getDeclaredField("readAloudJob").apply { isAccessible=true }.get(vm) as Job
+            vm.toggleReadAloud(second)
+            awaitState { secondEntered.count==0L }
+            firstRelease.countDown()
+            awaitState { oldJob.isCompleted }
+            assertEquals(second.id,vm.uiState.readAloudMessageId)
+            assertTrue(vm.uiState.isReadAloudPreparing)
+            vm.stopReadAloud()
+            secondRelease.countDown()
+        } finally { firstRelease.countDown();secondRelease.countDown() }
+    }
+
     private fun awaitState(predicate: () -> Boolean) {
         val deadline = System.nanoTime() + 3_000_000_000L
         while (!predicate() && System.nanoTime() < deadline) {

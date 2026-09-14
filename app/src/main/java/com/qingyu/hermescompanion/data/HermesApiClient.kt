@@ -1737,15 +1737,15 @@ class HermesApiClient(
         // notifications from the previous turn until this prompt receives its own start edge.
         if (!stream.turn.hasStarted()) return
         when (type) {
-            "reasoning.delta" -> firstString(payload, "text", "delta", "content")
+            "reasoning.delta" -> firstStreamText(payload, "text", "delta", "content")
                 ?.takeIf(String::isNotEmpty)
                 ?.let { stream.onEvent(StreamEvent.ReasoningDelta(it)) }
 
-            "reasoning.available" -> firstString(payload, "text", "reasoning", "content", "context", "preview")
+            "reasoning.available" -> firstStreamText(payload, "text", "reasoning", "content", "context", "preview")
                 ?.takeIf(String::isNotBlank)
                 ?.let { stream.onEvent(StreamEvent.ReasoningAvailable(it)) }
 
-            "thinking.delta" -> firstString(payload, "text", "delta", "content")
+            "thinking.delta" -> firstStreamText(payload, "text", "delta", "content")
                 ?.takeIf(String::isNotEmpty)
                 ?.let { stream.onEvent(StreamEvent.ReasoningDelta(it)) }
 
@@ -2153,6 +2153,11 @@ class HermesApiClient(
         }
         return null
     }
+
+    // Stream fragments can be a single space or newline. Metadata trimming must
+    // never be applied here: tokens are concatenated exactly as received.
+    private fun firstStreamText(item: JSONObject, vararg keys: String): String? =
+        keys.firstNotNullOfOrNull { key -> (item.opt(key) as? String)?.takeIf { it.isNotEmpty() } }
 
     private fun firstString(item: JSONObject, vararg keys: String): String? {
         keys.forEach { key ->

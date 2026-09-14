@@ -1,5 +1,23 @@
 [
   {
+    "version": "3.6.6",
+    "date": "2026-09-14",
+    "zh": [
+      "修复英文思考过程的单词连在一起：完整保留流式片段中的空格、换行和缩进，兼容 reasoning.delta 与 thinking.delta。",
+      "每条完整 AI 回答增加复制、朗读与停止按钮，复制仅包含回答正文；朗读支持分段、切换回答和退出时停止。",
+      "将 Hermes 与手机识别语言放到语音设置前部，明确区分识别语言和中文文字样式；Hermes 语言在确认后直接保存。",
+      "手机识别默认跟随手机语言，保留已有手动选择；补充英语及常用语言选项，简繁转换不再更改粤语识别语言。",
+      "手机朗读按回答内容匹配中英文，补充英语发音人选项；针对语言、复制和朗读取消行为增加回归验证。"
+    ],
+    "en": [
+      "Fix joined English words in reasoning by preserving spaces, line breaks and indentation in reasoning.delta and thinking.delta fragments.",
+      "Add Copy, Read aloud and Stop reading to completed AI answers. Copy includes only the answer body; read-aloud supports complete chunked playback, switching answers and stopping on exit.",
+      "Move Hermes and phone recognition language controls to the top of voice settings. Clearly distinguish spoken language from Chinese text style and save the Hermes language on confirmation.",
+      "Default phone recognition to the phone language while preserving saved choices. Expand language options and keep Cantonese recognition independent of Chinese script conversion.",
+      "Match phone read-aloud to Chinese or English answers, add English voice choices and add regression checks for language, copying and playback cancellation."
+    ]
+  },
+  {
     "version": "3.6.5",
     "date": "2026-09-10",
     "zh": [

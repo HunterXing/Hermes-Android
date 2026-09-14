@@ -232,13 +232,23 @@ fun VoiceSettingsScreen(
                     preferences.enabled,
                 ) { onChange(preferences.copy(enabled = it)) }
                 SettingsChoiceRow(uiText(R.string.ui_1017, "语音引擎"), voiceEngineLabel(preferences.engine), preferences.enabled) { picker = "engine" }
+                if (preferences.engine != "system") SettingsChoiceRow(
+                    uiText(R.string.ui_1043, "Hermes 识别语言"), sttLanguageLabel(serverDraft.stt.language),
+                    preferences.enabled && !state.isAdvancedSettingsLoading && serverDraft.stt.enabled,
+                ) { picker = "sttLanguage" }
+                SettingsChoiceRow(uiText(R.string.ui_1029, "手机识别语言"), voiceLanguageLabel(preferences.language), preferences.enabled) { picker = "phoneLanguage" }
+                Text(
+                    uiText(R.string.voice_language_help, "说英语时，Hermes 可选 English 或自动检测，手机可选 English。Hermes 语言在确认后保存；实际支持的语言取决于所用识别服务。"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                )
                 SettingsChoiceRow(uiText(R.string.ui_1018, "收音环境"), voiceSensitivityLabel(preferences.noiseSensitivity), preferences.enabled && preferences.engine != "system") { picker = "noiseSensitivity" }
-                SettingsChoiceRow(uiText(R.string.ui_1019, "中文转写文字"), transcriptScriptLabel(preferences.transcriptScript), preferences.enabled) { picker = "transcriptScript" }
             }
         }
         SettingsGroup(uiText(R.string.ui_1020, "对话与朗读"), "") {
             Column(Modifier.fillMaxWidth()) {
-                SwitchSettingRow(uiText(R.string.ui_1021, "自动朗读回复"), uiText(R.string.ui_1022, "完整朗读回答，中文优先匹配中文发音人"), preferences.autoRead, preferences.enabled) {
+                SwitchSettingRow(uiText(R.string.ui_1021, "自动朗读回复"), uiText(R.string.ui_1022, "完整朗读回答，手机朗读自动匹配中英文"), preferences.autoRead, preferences.enabled) {
                     onChange(preferences.copy(autoRead = it))
                 }
                 SwitchSettingRow(uiText(R.string.ui_1023, "连续对话"), uiText(R.string.ui_1024, "朗读结束后自动重新聆听；可随时点按打断"), preferences.continuous, preferences.enabled && preferences.autoRead) {
@@ -251,10 +261,13 @@ fun VoiceSettingsScreen(
         }
         SettingsGroup(uiText(R.string.ui_1027, "手机语音"), uiText(R.string.ui_1028, "服务器不可用时使用手机能力")) {
             Column(Modifier.fillMaxWidth()) {
-                SettingsChoiceRow(uiText(R.string.ui_1029, "手机兜底语言"), voiceLanguageLabel(preferences.language), preferences.enabled) { picker = "phoneLanguage" }
-                SettingsActionRow(uiText(R.string.ui_1030, "手机朗读设置"), uiText(R.string.ui_1031, "安装中文语音包或选择手机发音引擎"), preferences.enabled) {
+                SettingsChoiceRow(uiText(R.string.ui_1019, "中文文字样式"), transcriptScriptLabel(preferences.transcriptScript), preferences.enabled) { picker = "transcriptScript" }
+                Text(uiText(R.string.voice_script_help, "仅转换识别结果中的简体／繁体中文，不限制语音识别语言，也不翻译英文。"),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                SettingsActionRow(uiText(R.string.ui_1030, "手机朗读设置"), uiText(R.string.ui_1031, "安装所需语言包或选择手机发音引擎"), preferences.enabled) {
                     try { context.startActivity(Intent("com.android.settings.TTS_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-                    catch (_: ActivityNotFoundException) { testResult = uiText(R.string.ui_1032, "在手机系统设置中搜索“文字转语音”安装中文语音包") }
+                    catch (_: ActivityNotFoundException) { testResult = uiText(R.string.ui_1032, "在手机系统设置中搜索“文字转语音”安装所需语言包") }
                     catch (_: SecurityException) { testResult = uiText(R.string.ui_1033, "在手机系统设置中打开“文字转语音”") }
                 }
                 SettingsActionRow(uiText(R.string.ui_1034, "测试手机语音识别"), if (testResult.isBlank()) uiText(R.string.ui_1035, "仅测试 Android 系统服务") else testResult, preferences.enabled, launchTest)
@@ -268,7 +281,6 @@ fun VoiceSettingsScreen(
                 }
                 SettingsChoiceRow(uiText(R.string.ui_1040, "服务商"), sttProviderLabel(serverDraft.stt.provider), preferences.enabled) { picker = "sttProvider" }
                 SettingsChoiceRow(uiText(R.string.ui_1041, "STT 模型"), serverDraft.stt.model.ifBlank { uiText(R.string.ui_1042, "服务器默认") }, preferences.enabled && serverDraft.stt.enabled) { picker = "sttModel" }
-                SettingsChoiceRow(uiText(R.string.ui_1043, "Agent 识别语言"), sttLanguageLabel(serverDraft.stt.language), preferences.enabled && serverDraft.stt.enabled) { picker = "sttLanguage" }
             }
         }
         SettingsGroup(uiText(R.string.ui_1044, "语音朗读服务"), uiText(R.string.ui_1045, "设置合成模型与发音人")) {
@@ -347,7 +359,7 @@ fun VoiceSettingsScreen(
                         "phoneLanguage" -> onChange(preferences.copy(language = value))
                         "sttProvider" -> serverDraft = serverDraft.copy(stt = serverDraft.stt.copy(provider = value, model = defaultSttModel(value)))
                         "sttModel" -> serverDraft = serverDraft.copy(stt = serverDraft.stt.copy(model = value))
-                        "sttLanguage" -> serverDraft = serverDraft.copy(stt = serverDraft.stt.copy(language = value))
+                        "sttLanguage" -> onSaveAgentVoice(serverDraft.copy(stt = serverDraft.stt.copy(language = value)))
                         "ttsProvider" -> serverDraft = serverDraft.copy(tts = serverDraft.tts.copy(provider = value, model = defaultTtsModel(value), voice = defaultTtsVoice(value)))
                         "ttsModel" -> serverDraft = serverDraft.copy(tts = serverDraft.tts.copy(model = value))
                         "ttsVoice" -> serverDraft = serverDraft.copy(tts = serverDraft.tts.copy(voice = value))
@@ -474,11 +486,11 @@ internal val voiceSensitivityOptions get() = listOf(
 private fun voicePickerTitle(target: String): String = when (target) {
     "engine" -> uiText(R.string.ui_1017, "语音引擎")
     "noiseSensitivity" -> uiText(R.string.ui_1018, "收音环境")
-    "transcriptScript" -> uiText(R.string.ui_1019, "中文转写文字")
-    "phoneLanguage" -> uiText(R.string.ui_1029, "手机兜底语言")
+    "transcriptScript" -> uiText(R.string.ui_1019, "中文文字样式")
+    "phoneLanguage" -> uiText(R.string.ui_1029, "手机识别语言")
     "sttProvider" -> uiText(R.string.ui_1040, "服务商")
     "sttModel" -> uiText(R.string.ui_1041, "STT 模型")
-    "sttLanguage" -> uiText(R.string.ui_1043, "Agent 识别语言")
+    "sttLanguage" -> uiText(R.string.ui_1043, "Hermes 识别语言")
     "ttsProvider" -> uiText(R.string.ui_1040, "服务商")
     "ttsModel" -> uiText(R.string.ui_1046, "TTS 模型")
     "ttsVoice" -> uiText(R.string.ui_1047, "声音")
@@ -533,6 +545,9 @@ private fun voicePickerOptions(target: String, voice: ServerVoiceSettings): List
         }.map { it to it }
         "ttsVoice" -> when (voice.tts.provider) {
             "edge" -> listOf(
+                "en-US-JennyNeural" to "Jenny (English, US)",
+                "en-US-GuyNeural" to "Guy (English, US)",
+                "en-GB-SoniaNeural" to "Sonia (English, UK)",
                 "zh-CN-XiaoxiaoNeural" to uiText(R.string.ui_1076, "晓晓（女声）"),
                 "zh-CN-XiaoyiNeural" to uiText(R.string.ui_1077, "晓伊（女声）"),
                 "zh-CN-YunxiNeural" to uiText(R.string.ui_1078, "云希（男声）"),
@@ -696,9 +711,17 @@ private fun SettingsRowDivider() {
 private fun voiceLanguageLabel(code: String): String = VOICE_LANGUAGES.firstOrNull { it.first == code }?.second ?: code
 
 private val VOICE_LANGUAGES get() = listOf(
-    "zh-CN" to uiText(R.string.ui_1261, "中文（普通话）"),
-    "zh-HK" to uiText(R.string.ui_1262, "中文（粤语）"),
+    "system" to uiText(R.string.voice_follow_phone, "跟随手机语言"),
     "en-US" to "English (US)",
+    "en-GB" to "English (UK)",
+    "zh-CN" to uiText(R.string.ui_1261, "中文（普通话）"),
+    "zh-TW" to "中文（台灣）",
+    "zh-HK" to uiText(R.string.ui_1262, "中文（粤语）"),
+    "fr-FR" to "Français",
+    "de-DE" to "Deutsch",
+    "es-ES" to "Español",
+    "ja-JP" to "日本語",
+    "ko-KR" to "한국어",
 )
 
 @Composable

@@ -30,6 +30,14 @@ Signing out clears the gateway connection while keeping local names, avatars and
 
 Start chats, find history and add material
 
+### Copy or read an AI answer aloud
+
+1. Wait for the answer to finish, then tap Copy or Read aloud below it.
+2. Copy preserves the answer and line breaks, excluding the separate reasoning section.
+3. Tap Stop reading to stop. Choosing another answer switches playback; leaving the chat, changing conversations or starting voice input also stops it.
+
+Manual read-aloud does not need microphone permission. Automatic mode tries a matching phone voice, then Hermes. A supported phone voice or working server TTS is required.
+
 ### Start or continue a conversation
 
 1. Tap “Talk to me” on the assistant home for your daily conversation, or choose a recent conversation to continue it.
@@ -57,6 +65,15 @@ Start chats, find history and add material
 ## Voice conversations
 
 Dictation, continuous voice and recognition problems
+
+### Recognize English or another language
+
+1. Open Me → Settings → Voice. Find Hermes recognition language and Phone recognition language near the top.
+2. For English speech, select English or Detect automatically for Hermes. Select English (US), English (UK), or Follow phone language for the phone.
+3. Confirm the Hermes language to save it. Wait for the saved notice before testing; a failed save keeps the previous setting.
+4. Chinese text style only converts simplified/traditional characters. It does not choose a spoken language or translate English into Chinese.
+
+Supported languages depend on the server model or phone recognition service. Existing language choices are preserved when the interface language changes.
 
 ### Dictate a message
 

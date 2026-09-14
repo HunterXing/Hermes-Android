@@ -154,6 +154,8 @@ private data class HermesDeepLink(
 private data class ChatScrollPosition(val index: Int, val offset: Int)
 
 data class AppUiState(
+    val readAloudMessageId: String? = null,
+    val isReadAloudPreparing: Boolean = false,
     val route: AppRoute = AppRoute.SETUP,
     val baseUrl: String = "",
     val username: String = "",
@@ -353,6 +355,9 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     @Volatile private var voiceHttpCall: okhttp3.Call? = null
     private var voiceLimitJob: Job? = null
     private val voicePlayback = VoicePlaybackController(application)
+    private val replyPlayback = VoicePlaybackController(application)
+    private var readAloudJob: Job? = null
+    private var readAloudToken = 0L
     private var voiceReturnRoute: AppRoute = AppRoute.CHAT
 
     var uiState by androidx.compose.runtime.mutableStateOf(AppUiState())
@@ -2790,6 +2795,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun startVoiceCapture(target: VoiceCaptureTarget) {
+        stopReadAloud()
         if (!uiState.voicePreferences.enabled) return showNotice(uiText(R.string.ui_0298, "请先启用语音功能"))
         if (target == VoiceCaptureTarget.CHAT_INPUT && currentRun() != null) return showNotice(uiText(R.string.ui_0299, "请等待 Hermes 完成当前回复后再录音"))
         if (uiState.voiceCapture.phase == VoicePhase.TRANSCRIBING) return
@@ -2839,6 +2845,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun onAppBackgrounded() {
+        stopReadAloud()
         if (uiState.voiceCapture.phase == VoicePhase.LISTENING) cancelSingleVoiceInput()
         if (uiState.voiceConversation.phase == VoicePhase.LISTENING) cancelVoiceListening()
     }
@@ -2943,6 +2950,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         uiState.selectedSession?.scopedId == voiceSessionKey
 
     fun openVoiceConversation() {
+        stopReadAloud()
         if (uiState.voiceCapture.phase in setOf(VoicePhase.LISTENING, VoicePhase.TRANSCRIBING)) cancelSingleVoiceInput()
         if (!uiState.voicePreferences.enabled) return showNotice(uiText(R.string.ui_0321, "先在‘我的 → 语音’中启用语音功能"))
         val session = uiState.selectedSession ?: return showNotice(uiText(R.string.ui_0322, "先打开一个对话"))
@@ -3128,6 +3136,75 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             catch (error: Exception) {
                 if (voiceIsCurrent(epoch)) uiState = uiState.copy(voiceConversation = uiState.voiceConversation.copy(
                     phase = VoicePhase.ERROR, message = error.message ?: uiText(R.string.ui_0340, "朗读失败，回答已保留在对话中")))
+            }
+        }
+    }
+
+    fun stopReadAloud() {
+        readAloudToken++
+        readAloudJob?.cancel()
+        readAloudJob = null
+        replyPlayback.stop()
+        uiState = uiState.copy(readAloudMessageId = null, isReadAloudPreparing = false)
+    }
+
+    fun toggleReadAloud(message: ChatMessage) {
+        if (uiState.readAloudMessageId == message.id) { stopReadAloud(); return }
+        if (message.role != MessageRole.ASSISTANT || message.isStreaming || uiState.route != AppRoute.CHAT) return
+        val spoken = com.qingyu.hermescompanion.data.spokenReply(message.content)
+        if (spoken.isBlank()) return showNotice(uiText(R.string.reply_no_text, "这条回复没有可朗读的文字"))
+        val session = uiState.selectedSession ?: return
+        val client = apiClient
+        val preferences = uiState.voicePreferences
+        stopReadAloud()
+        val token = readAloudToken
+        fun checkCurrent() {
+            if (token != readAloudToken || uiState.route != AppRoute.CHAT ||
+                uiState.selectedSession?.scopedId != session.scopedId) throw kotlinx.coroutines.CancellationException()
+        }
+        uiState = uiState.copy(readAloudMessageId = message.id, isReadAloudPreparing = true)
+        readAloudJob = viewModelScope.launch {
+            try {
+                suspend fun phone() {
+                    checkCurrent()
+                    uiState = uiState.copy(isReadAloudPreparing = false)
+                    replyPlayback.speakSystem(spoken, preferences.language, preferences.speechRate)
+                }
+                suspend fun agent() {
+                    val api = client ?: throw IllegalStateException(uiText(R.string.reply_no_connection, "请先连接 Hermes，或使用手机朗读"))
+                    if (com.qingyu.hermescompanion.data.containsChinese(spoken)) {
+                        val voice = withContext(Dispatchers.IO) { api.voiceSettings(session.profile).tts }
+                        checkCurrent()
+                        if (!com.qingyu.hermescompanion.data.agentVoiceSupportsChinese(voice)) {
+                            throw IllegalStateException(uiText(R.string.ui_0339, "Agent 当前发音人不支持中文，在语音设置中选择中文发音人后重试"))
+                        }
+                    }
+                    for (chunk in com.qingyu.hermescompanion.data.speechChunks(spoken)) {
+                        checkCurrent()
+                        uiState = uiState.copy(isReadAloudPreparing = true)
+                        val audio = withContext(Dispatchers.IO) { api.synthesizeSpeech(chunk, session.profile) }
+                        checkCurrent()
+                        uiState = uiState.copy(isReadAloudPreparing = false)
+                        replyPlayback.play(audio)
+                    }
+                }
+                if (preferences.engine == "system") phone()
+                else if (preferences.engine == "automatic") {
+                    try { phone() } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                    catch (_: Exception) { agent() }
+                } else {
+                    try { agent() } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                    catch (_: Exception) { phone() }
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (e: Exception) {
+                if (token == readAloudToken) showNotice(e.message ?: uiText(R.string.reply_read_failed, "朗读失败，请检查语音设置后重试"))
+            } finally {
+                if (token == readAloudToken) {
+                    replyPlayback.stop()
+                    readAloudJob = null
+                    uiState = uiState.copy(readAloudMessageId = null, isReadAloudPreparing = false)
+                }
             }
         }
     }
@@ -4239,6 +4316,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     override fun onCleared() {
+        stopReadAloud()
         if (uiState.voiceCapture.phase == VoicePhase.LISTENING) cancelSingleVoiceInput()
         voiceHttpCall?.cancel()
         voiceLimitJob?.cancel()

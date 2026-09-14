@@ -96,8 +96,17 @@ internal fun containsChinese(text: String): Boolean = text.codePoints().anyMatch
     Character.UnicodeScript.of(it) == Character.UnicodeScript.HAN
 }
 
-internal fun speechLanguage(text: String, preferred: String): String =
-    if (containsChinese(text) && !preferred.startsWith("zh", true)) "zh-CN" else preferred
+internal fun speechLanguage(text: String, preferred: String): String {
+    val fallback = preferred.takeUnless { it.isBlank() || it == "system" }
+        ?: java.util.Locale.getDefault().toLanguageTag()
+    // Match the answer rather than forcing an English reply through a Chinese voice.
+    if (text.any { it in '\u3040'..'\u30ff' }) return "ja-JP"
+    if (text.any { it in '\uac00'..'\ud7af' }) return "ko-KR"
+    if (containsChinese(text)) return fallback.takeIf { it.startsWith("zh", true) } ?: "zh-CN"
+    if (text.any { it in 'a'..'z' || it in 'A'..'Z' } &&
+        fallback.substringBefore('-').lowercase() in setOf("zh", "ja", "ko")) return "en-US"
+    return fallback
+}
 
 /** Strip presentation syntax, preserving Chinese, punctuation and the actual answer. */
 internal fun spokenReply(markdown: String): String = markdown

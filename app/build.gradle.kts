@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val stableDebugKeystore = file(providers.gradleProperty("hermesSigningFile").orNull ?: rootProject.file("signing/hermes-debug.keystore"))
 val hermesPreview = providers.gradleProperty("hermesPreview").map(String::toBoolean).getOrElse(false)
+val hermesValidation = providers.gradleProperty("hermesValidation").map(String::toBoolean).getOrElse(false)
 
 plugins {
     id("com.android.application")
@@ -16,15 +17,19 @@ android {
 
     defaultConfig {
         // Retain the installed preview identity when producing its stable upgrade.
-        applicationId = if (hermesPreview) "com.qingyu.hermescompanion.preview" else "com.qingyu.hermescompanion"
+        applicationId = when {
+            hermesValidation -> "com.qingyu.hermescompanion.validation"
+            hermesPreview -> "com.qingyu.hermescompanion.preview"
+            else -> "com.qingyu.hermescompanion"
+        }
         minSdk = 26
         targetSdk = 36
-        versionCode = 365
-        versionName = "3.6.5"
+        versionCode = 366
+        versionName = "3.6.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        manifestPlaceholders["hermesAppLabel"] = "Hermes"
+        manifestPlaceholders["hermesAppLabel"] = if (hermesValidation) "Hermes Test" else "Hermes"
     }
 
     signingConfigs {

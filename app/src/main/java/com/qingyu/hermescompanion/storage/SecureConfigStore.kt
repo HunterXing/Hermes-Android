@@ -190,7 +190,7 @@ class SecureConfigStore(context: Context) {
     fun readVoicePreferences(): VoicePreferences = runCatching {
         VoicePreferences(
             enabled = preferences.getBoolean(KEY_VOICE_ENABLED, true),
-            language = preferences.getString(KEY_VOICE_LANGUAGE, "zh-CN").orEmpty().ifBlank { "zh-CN" },
+            language = preferences.getString(KEY_VOICE_LANGUAGE, "system").orEmpty().ifBlank { "system" },
             transcriptScript = preferences.getString(KEY_VOICE_TRANSCRIPT_SCRIPT, "simplified").orEmpty().ifBlank { "simplified" },
             autoSend = preferences.getBoolean(KEY_VOICE_AUTO_SEND, false),
             engine = preferences.getString(KEY_VOICE_ENGINE, "automatic").orEmpty().ifBlank { "automatic" },

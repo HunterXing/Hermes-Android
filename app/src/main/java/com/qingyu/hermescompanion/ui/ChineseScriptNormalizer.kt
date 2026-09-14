@@ -9,6 +9,9 @@ internal fun chineseScriptTransliteratorId(script: String): String? = when (scri
 }
 
 internal fun voiceRecognitionLanguage(language: String, transcriptScript: String): String {
+    if (language.isBlank() || language == "system") return java.util.Locale.getDefault().toLanguageTag()
+    // Written script is a post-processing preference, not the spoken dialect.
+    if (language.equals("zh-HK", true) || language.startsWith("yue", true)) return language
     if (!language.startsWith("zh", ignoreCase = true)) return language
     return when (transcriptScript.lowercase()) {
         "simplified", "zh-hans", "zh-cn", "zh-sg" -> "zh-CN"
@@ -26,7 +29,7 @@ internal fun normalizeVoiceTranscript(
     transliterate: (String, String) -> String,
 ): String {
     val transformId = chineseScriptTransliteratorId(transcriptScript) ?: return text
-    if (text.isBlank()) return text
+    if (text.isBlank() || !com.qingyu.hermescompanion.data.containsChinese(text)) return text
     return runCatching { transliterate(transformId, text) }.getOrDefault(text)
 }
 

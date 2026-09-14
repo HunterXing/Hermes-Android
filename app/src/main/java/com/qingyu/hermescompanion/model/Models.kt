@@ -431,7 +431,7 @@ data class NotificationPreferences(
 
 data class VoicePreferences(
     val enabled: Boolean = true,
-    val language: String = "zh-CN",
+    val language: String = "system",
     val transcriptScript: String = "simplified",
     val autoSend: Boolean = false,
     val engine: String = "automatic",

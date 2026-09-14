@@ -60,6 +60,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -175,7 +176,13 @@ fun ChatScreen(
     onLoadOlderMessages: () -> Unit,
     onScrollPositionChange: (String, Int, Int) -> Unit,
     onSnippetsChange: (List<com.qingyu.hermescompanion.model.PromptSnippet>) -> Unit = {},
+    onReadAloud: (ChatMessage) -> Unit = {},
+    onStopReadAloud: () -> Unit = {},
 ) {
+    val stopReading by rememberUpdatedState(onStopReadAloud)
+    DisposableEffect(state.selectedSession?.scopedId) {
+        onDispose { stopReading() }
+    }
     val skin = HermesSkin.current
     val context = LocalContext.current
     val voicePermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -213,6 +220,7 @@ fun ChatScreen(
         }
     }
     val voiceInputAction = {
+        onStopReadAloud()
         when (resolveVoiceInputAction(state.voicePreferences.engine, state.voiceCapture.phase, state.voiceCapture.agentSttAvailable)) {
             VoiceInputAction.STOP_RECORDING -> onStopVoiceInput()
             VoiceInputAction.LAUNCH_SYSTEM -> launchSystemVoice()
@@ -406,7 +414,10 @@ fun ChatScreen(
                                         MessageItem(answer, true, false, onOpenImage, onOpenLink,
                                             state.userProfile.displayName, state.userProfile.avatarUri,
                                             hermesName, state.userProfile.hermesAvatarUri, state.inlineImagePreviews,
-                                            state.toolActivities.count { it.status == ToolStatus.RUNNING }, readerMode = true)
+                                            state.toolActivities.count { it.status == ToolStatus.RUNNING }, readerMode = true,
+                                            reading = state.readAloudMessageId == answer.id,
+                                            preparing = state.isReadAloudPreparing && state.readAloudMessageId == answer.id,
+                                            onReadAloud = { onReadAloud(answer) })
                                     }
                                 }
                             }
@@ -481,6 +492,9 @@ fun ChatScreen(
                                     message = message,
                                     showIdentity = state.messages.getOrNull(index - 1)?.role != message.role,
                                     highlighted = message.id == state.highlightedMessageId,
+                                    reading = state.readAloudMessageId == message.id,
+                                    preparing = state.isReadAloudPreparing && state.readAloudMessageId == message.id,
+                                    onReadAloud = { onReadAloud(message) },
                                     onOpenImage = onOpenImage,
                                     onOpenLink = onOpenLink,
                                     userName = state.userProfile.displayName.ifBlank { state.username.ifBlank { uiText(R.string.ui_0671, "我") } },
@@ -733,7 +747,7 @@ private fun ConversationTime(label: String) {
 }
 
 @Composable
-private fun MessageItem(
+internal fun MessageItem(
     message: ChatMessage,
     showIdentity: Boolean,
     highlighted: Boolean,
@@ -746,6 +760,9 @@ private fun MessageItem(
     inlineImagePreviews: Map<String, com.qingyu.hermescompanion.model.ImagePreview>,
     runningToolCount: Int,
     readerMode: Boolean = false,
+    reading: Boolean = false,
+    preparing: Boolean = false,
+    onReadAloud: () -> Unit = {},
 ) {
     val skin = HermesSkin.current
     val councilMessages = remember(message.content) { parseCouncilAgentMessages(message.content) }
@@ -766,12 +783,17 @@ private fun MessageItem(
     ) {
         val userBubbleMaxWidth = maxWidth * 0.80f
         if (councilMessages.isNotEmpty()) {
-            CouncilGroupTranscript(
+            Column(Modifier.fillMaxWidth()) {
+              CouncilGroupTranscript(
                 messages = councilMessages,
                 onOpenImage = onOpenImage,
                 onOpenLink = onOpenLink,
-                inlineImagePreviews = inlineImagePreviews,
-            )
+                  inlineImagePreviews = inlineImagePreviews,
+              )
+              if (message.role == MessageRole.ASSISTANT && !message.isStreaming && visibleContent.isNotBlank()) {
+                  com.qingyu.hermescompanion.ui.component.ReplyActions(visibleContent, reading, preparing, onReadAloud)
+              }
+            }
         } else when (message.role) {
         MessageRole.USER -> Row(
             modifier = Modifier.fillMaxWidth(),
@@ -902,6 +924,9 @@ private fun MessageItem(
                             )
                         }
                     }
+                }
+                if (!message.isStreaming && visibleContent.isNotBlank()) {
+                    com.qingyu.hermescompanion.ui.component.ReplyActions(visibleContent, reading, preparing, onReadAloud)
                 }
                 if (message.isStreaming && !(visibleReasoning.isNotBlank() && visibleContent.isBlank() && runningToolCount == 0 && !syntheticProcessing)) {
                     Row(

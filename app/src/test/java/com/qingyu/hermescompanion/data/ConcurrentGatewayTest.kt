@@ -78,6 +78,24 @@ class ConcurrentGatewayTest {
         client.streamMessage(controller, HermesSession(id = id, title = id, workspacePath = "/projects/$id"), "prompt-$id", emptyList(), events::add)
     }
 
+    @Test fun englishReasoningPreservesSpacesNewlinesAndBothDeltaEvents() {
+        val received = CopyOnWriteArrayList<StreamEvent>()
+        val work = start("english", StreamController(), received)
+        assertEquals("runtime-english", submitted.poll(15, TimeUnit.SECONDS))
+        val fragments = listOf("To", " answer", " accurately", " ", "I", " should", "\n", "check", " the files.", "\n\n", "  Then", "\t", "reply.")
+        fragments.forEachIndexed { index, fragment ->
+            event("runtime-english", if (index % 2 == 0) "reasoning.delta" else "thinking.delta", fragment)
+        }
+        // Some gateways omit text and send a delta/content field instead.
+        socket.send(JSONObject().put("method", "event").put("params", JSONObject()
+            .put("session_id", "runtime-english").put("type", "reasoning.delta")
+            .put("payload", JSONObject().put("text", JSONObject.NULL).put("delta", " Done."))).toString())
+        event("runtime-english", "message.complete", "Here is the answer.")
+        work.get(15, TimeUnit.SECONDS)
+        assertEquals(fragments.joinToString("") + " Done.", received.filterIsInstance<StreamEvent.ReasoningDelta>().joinToString("") { it.text })
+        assertEquals("Here is the answer.", received.filterIsInstance<StreamEvent.AssistantCompleted>().last().content)
+    }
+
     @Test fun interleavedRepliesStayInTheirOwnConversation() {
         val a = CopyOnWriteArrayList<StreamEvent>(); val b = CopyOnWriteArrayList<StreamEvent>()
         val fa = start("a", StreamController(), a)

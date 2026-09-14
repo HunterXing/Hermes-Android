@@ -33,8 +33,27 @@ class ChineseScriptNormalizerTest {
 
     @Test
     fun recognitionLocaleFollowsSelectedChineseScript() {
-        assertEquals("zh-CN", voiceRecognitionLanguage("zh-HK", "simplified"))
+        assertEquals("zh-HK", voiceRecognitionLanguage("zh-HK", "simplified"))
         assertEquals("zh-TW", voiceRecognitionLanguage("zh-CN", "traditional"))
         assertEquals("en-US", voiceRecognitionLanguage("en-US", "simplified"))
+    }
+
+    @Test fun englishTranscriptIsPreservedWithoutChineseConversion() {
+        val original = "I'll check the files.\nThen reply in English."
+        for (script in listOf("simplified", "traditional", "original")) {
+            assertEquals(original, normalizeVoiceTranscript(original, script) { _, _ ->
+                fail("English must not be passed through Chinese conversion")
+                ""
+            })
+        }
+    }
+
+    @Test fun defaultRecognitionUsesPhoneLanguageInsteadOfMandarin() {
+        val old = java.util.Locale.getDefault()
+        try {
+            java.util.Locale.setDefault(java.util.Locale.UK)
+            assertEquals("en-GB", voiceRecognitionLanguage("system", "simplified"))
+            assertEquals("en-GB", voiceRecognitionLanguage("system", "traditional"))
+        } finally { java.util.Locale.setDefault(old) }
     }
 }

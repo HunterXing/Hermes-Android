@@ -2,23 +2,25 @@
 
 Hermes 是面向个人自部署 Hermes Agent 的轻量安卓客户端。模型、Skills、工具和记忆继续在服务器运行，手机端提供日常聊天、会话和附件入口。
 
-当前版本：`3.6.5` 正式版（温暖首页人物对齐、小字号日期星期、48 组随机短句；同版本修订对话菜单尺寸）
+当前版本：`3.6.6` 正式版（英文思考排版、语音语言入口、回复复制与朗读）。
 
-本版说明见 [3.6.5 更新说明](docs/RELEASE-3.6.5.md)，English users: [Quick start](docs/QUICK-START-EN.md)。常见操作见应用内“我的 → 使用说明”或 [分级操作指南](docs/OPERATION-GUIDE.md)。
+本版说明见 [3.6.6 更新说明](docs/RELEASE-3.6.6.md)，English users: [Quick start](docs/QUICK-START-EN.md)。常见操作见应用内“我的 → 使用说明”或 [分级操作指南](docs/OPERATION-GUIDE.md)。
 
 首页“跟我说”打开固定的普通 Hermes 日常对话；分享默认进入同一对话。移除 3.4.0 的分类收集、计划采用和独立助理资料同步，记忆、文件与定时任务沿用 Hermes 原有能力。保留可恢复的单次录音转写。无需安装新的服务器服务或配置专用 workspace。
 
 助理首页、集中阅读视图和独立决策面板，配合「助理 / 回看 / 任务 / 文件 / 我的」五栏导航。点击“任务”直接进入执行中心。
 
-> 安装说明：`Hermes-3.6.5.apk` 为不可调试的正式 Release 构建。为覆盖当前预览版并保留本机配置，发行包沿用原预览版的应用 ID 与签名；桌面名称为 Hermes，版本为 3.6.5。可直接覆盖同签名的 3.4.1–3.6.1 预览版和 3.6.2–3.6.4 正式版。源码不包含签名私钥。
+> 安装说明：日常使用请选择 `Hermes-Android-3.6.6-release.apk`，桌面名称为 Hermes，版本为 3.6.6 / 366。正式包沿用 `com.qingyu.hermescompanion.preview` 与 3.6.5 原签名，支持覆盖同包名、同签名的旧版并保留本机数据。`Hermes-Android-3.6.6-debug.apk` 仅用于调试，与正式包使用相同应用 ID，二者不能并存。源码不包含签名私钥。
 
 热修说明与验收步骤见 [3.0.4a 修复说明](Hermes-v3.0.4a-release-notes.md)。
 
 ## 本次更新
 
-- 三套首页左上角使用小字号日期与星期，问候语随时间更新；内置 48 组中英文短句。
-- 温暖首页人物头顶与问候语顶部对齐、脚底与“跟我说”按钮底部对齐，互动动作共用稳定展示区域。
-- 对话右上角菜单按文字长度收紧宽度，三套皮肤统一检查中英文、浅深色的排版与点击区域。
+- 保留思考过程流式片段中的空格、换行和缩进，修复英文单词粘连。
+- 完整 AI 回复下方增加“复制”“朗读 / 停止朗读”，支持历史消息、集中阅读和三套皮肤。
+- 语音设置顶部直接选择 Hermes 和手机识别语言；Hermes 语言确认后保存到当前 Profile。
+- 手机识别默认跟随手机语言；中文文字样式仅转换简繁，英文保持原文，粤语设置继续保留。
+- 手机朗读匹配中英文；准备音频时可停止，退出对话、开始录音或退到后台时结束朗读。
 
 ## 从 3.2.0 到 3.6.5
 
@@ -144,7 +146,7 @@ Hermes 密码：与电脑端相同
 - Android 8.0+（`minSdk 26`）
 - 本机存在 `signing/hermes-debug.keystore` 时使用固定测试签名；公开源码不包含该文件，缺失时自动使用 Android 默认 Debug 签名
 
-用 Android Studio 打开项目根目录，等待 Gradle Sync 后运行 `app`。3.6.5 正式覆盖升级包构建命令（签名参数使用单独保存的原预览签名路径）：
+用 Android Studio 打开项目根目录，等待 Gradle Sync 后运行 `app`。3.6.6 正式覆盖升级包构建命令（签名参数使用单独保存的原预览签名路径）：
 
 ```bash
 ./gradlew testDebugUnitTest assembleRelease -PhermesPreview=true -PhermesSigningFile=/absolute/path/hermes-preview.keystore

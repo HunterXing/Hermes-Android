@@ -5,6 +5,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class VoiceTurnPolicyTest {
+    @Test fun englishAnswerDoesNotUseMandarinVoice() {
+        assertEquals("en-US", speechLanguage("Here is your answer.", "zh-CN"))
+        assertEquals("en-GB", speechLanguage("Here is your answer.", "en-GB"))
+        assertEquals("ja-JP", speechLanguage("日本語で回答します", "zh-CN"))
+    }
+
+    @Test fun automaticReadAloudUsesPhoneLocale() {
+        val old = java.util.Locale.getDefault()
+        try {
+            java.util.Locale.setDefault(java.util.Locale.UK)
+            assertEquals("en-GB", speechLanguage("Here is your answer.", "system"))
+            assertEquals("zh-CN", speechLanguage("这是回答", "system"))
+        } finally { java.util.Locale.setDefault(old) }
+    }
     private class Recording(val detector: VoiceSilenceDetector = VoiceSilenceDetector()) {
         var time = 0L
         var sentAt: Long? = null
